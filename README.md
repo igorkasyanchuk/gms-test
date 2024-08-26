@@ -1,0 +1,14 @@
+- parse options
+- prepare URL
+- fetch original content
+- find all images
+  - title
+  - description
+  - preview
+  - with calendar
+  - without calendar
+- download preview
+- categorize images with AI
+- download appropriate images and store in appropriate folders (day, month, + e.g. animals, nature, etc.)
+- show progress in the console
+- specs
