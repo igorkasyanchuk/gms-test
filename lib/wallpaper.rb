@@ -15,19 +15,21 @@ class Wallpaper
 
   def preview
     puts "Fetching preview image: #{preview_url}"
-    HTTPX.with(timeout: { request_timeout: 15 }).get(preview_url).to_s
+    # ideally we also need to handle timeouts
+    # for the sake of simplicity, we are not handling it
+    Faraday.get(preview_url).body
   end
 
   # example of link
   # https://www.smashingmagazine.com/files/wallpapers/feb-24/love-myself/nocal/feb-24-love-myself-nocal-1600x1200.jpg
   def store
-    links = with_calendar_urls.take(2) + without_calendar_urls.take(2)
+    puts "  -> Storing wallpapers for: \"#{title}\" with #{links.count} link(s) ..."
     links.each do |link|
-      puts "  -> Downloading: #{link}"
-      content = HTTPX.get(link).to_s
+      puts "    -> Downloading: #{link}"
+      content = Faraday.get(link).body
       folder = link.split("/").last(5)
       FileUtils.mkdir_p(folder[0..3].join("/"))
-      File.write("#{folder.join("/")}.png", content)
+      File.write(folder.join("/"), content)
     end
   end
 
@@ -48,5 +50,9 @@ class Wallpaper
 
     li = lis.detect { _1.text.include?("without calendar") }
     @without_calendar_urls = li.css("a").map { |link| link["href"] } if li
+  end
+
+  def links
+    with_calendar_urls.take(2) + without_calendar_urls.take(2)
   end
 end

@@ -2,7 +2,8 @@
 
 require "base64"
 
-class WallpaperCategorizer
+class WallpaperMatcher
+  MODEL = "claude-3-opus-20240229" # claude-3-opus-20240229, claude-3-sonnet-20240229
   SYSTEM_PROMPT = %{
     You are about to categorize the image, and check if it matches requested theme. Please returns what theme you think this image belongs to.
   }
@@ -22,12 +23,11 @@ class WallpaperCategorizer
   end
 
   def call
-    # content = HTTPX.get("https://www.smashingmagazine.com/files/wallpapers/mar-24/breaking-superstitions/cal/mar-24-breaking-superstitions-cal-320x480.png").to_s
     content = wallpaper.preview
     imgbase64 = Base64.strict_encode64(content)
     response = client.messages(
       parameters: {
-        model: "claude-3-5-sonnet-20240620", # claude-3-opus-20240229, claude-3-sonnet-20240229
+        model: MODEL,
         system: SYSTEM_PROMPT,
         messages: [
           {
@@ -53,7 +53,7 @@ class WallpaperCategorizer
       },
     )
     sleep(0.5) # because of Faraday::TooManyRequestsError, I think because of the rate limit of the API on the free tier
-    puts response["content"][0]["text"]
+    JSON.parse(response["content"][0]["text"])
   rescue Faraday::ServerError
     retries_count ||= 0
     retries_count += 1
@@ -63,6 +63,12 @@ class WallpaperCategorizer
     else
       raise
     end
+  rescue Faraday::BadRequestError
+    # something is wrong with image
+    # example: https://files.smashing.media/articles/desktop-wallpaper-calendars-january-2024/jan-24-cheerful-chimes-city-preview-opt.jpg
+    # image is good, is not corrupted, but the API does not like it
+    # I'll skip it, but what can be done is if we try to resize it with MiniMagick and try again
+    { "skip" => true }
   end
 
   private

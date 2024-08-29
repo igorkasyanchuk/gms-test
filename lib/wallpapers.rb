@@ -2,7 +2,7 @@
 
 require "date"
 
-class SmashingMagazineWallpapers
+class Wallpapers
   class InvalidOptionsError < StandardError; end
   class CannotDownloadError < StandardError; end
 
@@ -20,15 +20,15 @@ class SmashingMagazineWallpapers
   def download
     puts "Downloading wallpapers from: #{source_url}"
 
-    response = HTTPX.get(source_url)
+    response = Faraday.get(source_url)
     if response.status == 200
-      collect_wallpapers(response.to_s)
+      collect_wallpapers(response.body)
     else
       # fallback to the previous month (if wallpapers were published in the previous month)
       puts "Downloading wallpapers from: #{fallback_source_url} [FALLBACK]"
-      response = HTTPX.get(fallback_source_url)
+      response = Faraday.get(fallback_source_url)
       if response.status == 200
-        collect_wallpapers(response.to_s)
+        collect_wallpapers(response.body)
       end
     end
 

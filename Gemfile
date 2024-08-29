@@ -2,11 +2,17 @@
 
 source "https://rubygems.org"
 
-gem "rspec"
 gem "pry"
-gem "httpx"
+gem "faraday"
 gem "nokogiri"
 gem "dotenv"
 gem "anthropic"
 gem "rubocop-shopify", require: false
 gem "rubocop-rspec", require: false
+
+group :test do
+  gem "rspec"
+  gem "vcr"
+  gem "webmock"
+  gem "simplecov", require: false
+end
